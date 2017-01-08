@@ -33,7 +33,13 @@ It is preferred to use the last pattern to match all entries with given domain a
 
 Go to eg. _https://regex101.com_ for evaluation of your regular expressions.
 
-**Caution:** In some rarely situations, if browser is opened before program has finished, the database can be damaged and Safari has problems to quit. Just delete the database file and restart Safari.
+### Caution:
+In some situations the database can be damaged and Safari has problems to read the database and quit.
+For this reason a backup file (History.db_backup) is created. Just delete the database file, rename the backup and restart Safari or complete delete database file if it is not needed.
+Still investigating the issue and searching for a solution. It seems, that sqlite-jdbc corrupts the db in an unknown way...
+
+### Disclaimer:
+Use this program at your own risk. I'm not responsible if something goes wrong.
 
 _(Code is quite a little bit messy... It will be fixed at ongoing progress.)_
 
