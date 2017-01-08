@@ -26,14 +26,17 @@ Each line of the search file is read as one regex statement and checked against 
 www\.google\.com
 www\.google.*
 .*google.*
+^([^\/]*)(\/{0}|\/{2})([^\/]*)google.*$
 ```
-It is preferred to use the last pattern to match all entries with given domain.
+
+It is preferred to use the last pattern to match all entries with given domain and not just a key word inside url.
+
+Go to eg. _https://regex101.com_ for evaluation of your regular expressions.
 
 **Caution:** In some rarely situations, if browser is opened before program has finished, the database can be damaged and Safari has problems to quit. Just delete the database file and restart Safari.
 
 _(Code is quite a little bit messy... It will be fixed at ongoing progress.)_
 
 External libs:
-
 - sqlite-jdbc 3.15.1
 - dd-plist 1.16
