@@ -129,7 +129,7 @@ public class Main {
     private static void cleanHistory(Connection connection, String expression) {
         try {
             Statement stmt = connection.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT * FROM history_items;");
+            ResultSet rs = stmt.executeQuery("SELECT id, url FROM history_items;");
 
             PreparedStatement psVisits = connection
                     .prepareStatement("DELETE FROM history_visits WHERE history_item = ?;");
@@ -167,38 +167,39 @@ public class Main {
 
     private static NSDictionary cleanTabs(NSDictionary rootDict, String expression) {
 
-            boolean delete = false;
-            String url = "";
+        boolean delete = false;
+        String url = "";
 
 
-        NSObject[] parameters = ((NSArray)rootDict.objectForKey("ClosedTabOrWindowPersistentStates")).getArray();
-        for(int i = 0, j = 0; i < parameters.length; i++) {
+        NSObject[] persistentStates = ((NSArray)rootDict.objectForKey("ClosedTabOrWindowPersistentStates")).getArray();
 
-            NSObject[] array;
-            NSObject param = parameters[i];
-            NSObject persistState = ((NSDictionary)param).objectForKey("PersistentState");
+        for(int i = 0, j = 0; i < persistentStates.length; i++) {
 
-            if(((NSDictionary)persistState).containsKey("TabStates")) {
+            NSObject tabState;
+            NSObject[] tabStateParameters;
+            NSObject persistentState = ((NSDictionary)persistentStates[i]).objectForKey("PersistentState");
 
-                persistState = ((NSDictionary) persistState).objectForKey("TabStates");
-                array = ((NSArray)persistState).getArray();
+            if(((NSDictionary)persistentState).containsKey("TabStates")) {
+
+                tabState = ((NSDictionary) persistentState).objectForKey("TabStates");
+                tabStateParameters = ((NSArray)tabState).getArray();
 
             } else {
 
-                array = new NSObject[1];
-                array[0] = persistState;
+                tabStateParameters = new NSObject[1];
+                tabStateParameters[0] = persistentState;
             }
 
-            for(NSObject arrayObject: array) {
+            for(NSObject tabStateParameter: tabStateParameters) {
 
-                arrayObject = ((NSDictionary) arrayObject).objectForKey("TabURL");
+                tabStateParameter = ((NSDictionary) tabStateParameter).objectForKey("TabURL");
 
-                if (arrayObject == null) {
+                if (tabStateParameter == null) {
                     delete = true;
                     continue;
                 }
 
-                url = ((NSString) arrayObject).toString();
+                url = tabStateParameter.toString();
 
                 if(url.matches(expression)) {
                     delete = true;
@@ -206,7 +207,7 @@ public class Main {
             }
 
             if(delete) {
-                System.out.println(url + " deleted from recent closed tabs! ("+i+")");
+                System.out.println(url + " deleted from recent closed tabs!");
                 ((NSArray)rootDict.objectForKey("ClosedTabOrWindowPersistentStates")).remove(i-j);
                 j++;
             }
