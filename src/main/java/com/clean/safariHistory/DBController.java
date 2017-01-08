@@ -30,6 +30,7 @@ public class DBController {
     }
 
     public void closeDBConnection() throws SQLException {
+        connection.commit();
         connection.close();
         System.out.println("...Connection closed");
     }
@@ -43,8 +44,10 @@ public class DBController {
             System.out.println("Creating Connection to Database...");
             connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
 
-            if (!connection.isClosed())
+            if (!connection.isClosed()) {
+                connection.setAutoCommit(false);
                 System.out.println("...Connection established");
+            }
 
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -53,7 +56,7 @@ public class DBController {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 try {
-                    if (!connection.isClosed() && connection != null) {
+                    if (connection != null && !connection.isClosed()) {
 
                         connection.close();
 

@@ -14,7 +14,7 @@ To execute:
 $ java -jar SafariHistoryClean-0.5.0-jar-with-dependencies.jar
         -d "/Users/.../Library/Safari/History.db"
         -p "/Users/.../Library/Safari/RecentlyClosedTabs.plist"
-        -s searchExpressions.txt
+        -s "{jarFilePath}/searchExpressions.txt"
 ```
 All parameters are optional. If nothing is applied the default values are as listed above.
 

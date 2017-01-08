@@ -5,6 +5,7 @@ import org.xml.sax.SAXException;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.net.URLDecoder;
 import java.sql.*;
 import java.text.ParseException;
 
@@ -13,6 +14,11 @@ public class Main {
     public static void main(String[] args) {
 
         String searchFileName = "searchExpressions.txt";
+        try {
+            searchFileName = getOwnDirectoryPath() + searchFileName;
+        } catch (UnsupportedEncodingException e) {
+            System.out.println("Unable to get program location! Use -s parameter to fix problem. (" + e.toString() + ")");
+        }
         String dbFileName = System.getProperty("user.home") + "/Library/Safari/History.db";
         String plistFileName = System.getProperty("user.home") + "/Library/Safari/RecentlyClosedTabs.plist";
 
@@ -46,8 +52,28 @@ public class Main {
             return;
         }
 
-        File plistFile = new File(plistFileName);
+        // output to check file locations
+        System.out.println("Database: " + dbFileName);
+        System.out.println("PList:    " + plistFileName);
+        System.out.println("Search:   " + searchFileName);
 
+        // open search expressions file
+        File searchFile = new File(searchFileName);
+        FileReader fr = null;
+        try {
+            fr = new FileReader(searchFile);
+        } catch (FileNotFoundException e) {
+            System.out.println("Search expressions file not found! (" + e.toString() + ")");
+            return;
+        }
+        BufferedReader br = new BufferedReader(fr);
+
+        // open database file and connect to db
+        DBController dbc = new DBController(dbFileName);
+        dbc.initDBConnection();
+
+        // open plist file for recent closed tabs and parse it
+        File plistFile = new File(plistFileName);
         NSDictionary rootDict;
         try {
 
@@ -74,26 +100,13 @@ public class Main {
             return;
         }
 
-        DBController dbc = new DBController(dbFileName);
-        dbc.initDBConnection();
-
-        File searchFile = new File(searchFileName);
-        FileReader fr = null;
-        try {
-            fr = new FileReader(searchFile);
-        } catch (FileNotFoundException e) {
-            System.out.println("Search expressions file not found! (" + e.toString() + ")");
-            return;
-        }
-        BufferedReader br = new BufferedReader(fr);
-
         String expression;
 
         try {
             while((expression = br.readLine()) != null){
 
                 if(!expression.equals("")) {
-                    cleanHistory(dbc.getDBConnection(), expression);
+                    cleanHistory(dbc.getDBConnection(), expression, dbFileName);
                     rootDict = cleanTabs(rootDict, expression);
                 }
             }
@@ -109,19 +122,29 @@ public class Main {
         }
 
         try {
+            Statement stmt = dbc.getDBConnection().createStatement();
+
+            // search for history_visits which no history_item exists for
+            //stmt.executeUpdate("DELETE FROM history_visits WHERE history_item NOT IN (SELECT id FROM history_items);");
+            stmt.close();
+
+        } catch (SQLException e) {
+            System.out.println("Couldn't handle DB-Query! (" + e.toString() + ")");
+        }
+
+        try {
             dbc.closeDBConnection();
         } catch (SQLException e) {
             System.out.println("DB connection could not be closed! (" + e.toString() + ")");
         }
 
-        try {
-            Statement stmt = dbc.getDBConnection().createStatement();
-
-            // search for history_visits which no history_item exists for
-            ResultSet rs = stmt.executeQuery("DELETE FROM history_visits WHERE history_item NOT IN (SELECT id FROM history_items);");
-
-        } catch (SQLException e) {
-        }
+        // delete temporary sqlite files
+        //File deleteFile = new File(dbFileName + "-shm");
+        //deleteFile.delete();
+//
+        //deleteFile = new File(dbFileName + "-wal");
+        //deleteFile.delete();
+        //deleteFile = null;
 
         System.out.println("\nAll cleaned successfully!");
     }
@@ -135,40 +158,34 @@ public class Main {
         System.out.println("-s:\tFile path to search expressions file (default 'searchExpressions.txt')");
     }
 
-    private static void cleanHistory(Connection connection, String expression) {
+    private static void cleanHistory(Connection connection, String expression, String dbFileName) {
         try {
             Statement stmt = connection.createStatement();
-            ResultSet rs = stmt.executeQuery("SELECT id, url FROM history_items;");
-
-            PreparedStatement psVisits = connection
-                    .prepareStatement("DELETE FROM history_visits WHERE history_item = ?;");
-
-            PreparedStatement psItems = connection
-                    .prepareStatement("DELETE FROM history_items WHERE id = ?;");
-
-            psVisits.setInt(1, 432);
+            Statement stmtDel = connection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT id, url FROM history_items ORDER BY id ASC;");
 
             while (rs.next()) {
 
                 if(rs.getString("url").matches(expression)) {
-                    System.out.print("ID = " + rs.getString("id"));
-                    System.out.print("\tURL = " + rs.getString("url"));
+                    System.out.printf("ID = %4d", Integer.parseInt(rs.getString("id")));
+                    System.out.print("  URL = " + rs.getString("url"));
                     System.out.println("...   deleted from history!");
 
-                    psVisits.setInt(1, rs.getInt("id"));
-                    psVisits.addBatch();
-
-                    psItems.setInt(1, rs.getInt("id"));
-                    psItems.addBatch();
+                    stmtDel.executeUpdate("DELETE FROM history_visits WHERE history_item = " + rs.getString("id") + ";");
+                    try {
+                        Thread.sleep(50);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    stmtDel.executeUpdate("DELETE FROM history_items WHERE id = " + rs.getString("id") + ";");
                 }
             }
 
-            connection.setAutoCommit(false);
-            psVisits.executeBatch();
-            psItems.executeBatch();
-            connection.setAutoCommit(true);
-
+            connection.commit();
             rs.close();
+            stmt.close();
+            stmtDel.close();
+
         } catch (SQLException e) {
             System.out.println("Couldn't handle DB-Query! (" + e.toString() + ")");
         }
@@ -223,5 +240,14 @@ public class Main {
         }
 
         return rootDict;
+    }
+
+    private static String getOwnDirectoryPath() throws UnsupportedEncodingException {
+
+        String path = Main.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+        String decodedPath = URLDecoder.decode(path, "UTF-8");
+        decodedPath = decodedPath.substring(0, decodedPath.lastIndexOf('/'));
+
+        return decodedPath + "/";
     }
 }
