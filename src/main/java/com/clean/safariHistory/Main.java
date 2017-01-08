@@ -140,7 +140,7 @@ public class Main {
             Statement stmt = dbc.getDBConnection().createStatement();
 
             // search for history_visits which no history_item exists for
-            //stmt.executeUpdate("DELETE FROM history_visits WHERE history_item NOT IN (SELECT id FROM history_items);");
+            stmt.executeUpdate("DELETE FROM history_visits WHERE history_item NOT IN (SELECT id FROM history_items);");
             stmt.close();
 
         } catch (SQLException e) {
