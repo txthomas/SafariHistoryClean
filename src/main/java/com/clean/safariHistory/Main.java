@@ -6,6 +6,9 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.*;
 import java.text.ParseException;
 
@@ -57,6 +60,12 @@ public class Main {
         System.out.println("PList:    " + plistFileName);
         System.out.println("Search:   " + searchFileName);
 
+        try {
+            Files.copy(Paths.get(dbFileName), Paths.get(dbFileName+"_bakup"), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         // open search expressions file
         File searchFile = new File(searchFileName);
         FileReader fr = null;
@@ -69,7 +78,13 @@ public class Main {
         BufferedReader br = new BufferedReader(fr);
 
         // open database file and connect to db
-        DBController dbc = new DBController(dbFileName);
+        DBController dbc = null;
+        try {
+            dbc = new DBController(dbFileName);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return;
+        }
         dbc.initDBConnection();
 
         // open plist file for recent closed tabs and parse it
@@ -106,7 +121,7 @@ public class Main {
             while((expression = br.readLine()) != null){
 
                 if(!expression.equals("")) {
-                    cleanHistory(dbc.getDBConnection(), expression, dbFileName);
+                    cleanHistory(dbc.getDBConnection(), expression);
                     rootDict = cleanTabs(rootDict, expression);
                 }
             }
@@ -138,14 +153,6 @@ public class Main {
             System.out.println("DB connection could not be closed! (" + e.toString() + ")");
         }
 
-        // delete temporary sqlite files
-        //File deleteFile = new File(dbFileName + "-shm");
-        //deleteFile.delete();
-//
-        //deleteFile = new File(dbFileName + "-wal");
-        //deleteFile.delete();
-        //deleteFile = null;
-
         System.out.println("\nAll cleaned successfully!");
     }
 
@@ -158,7 +165,7 @@ public class Main {
         System.out.println("-s:\tFile path to search expressions file (default 'searchExpressions.txt')");
     }
 
-    private static void cleanHistory(Connection connection, String expression, String dbFileName) {
+    private static void cleanHistory(Connection connection, String expression) {
         try {
             Statement stmt = connection.createStatement();
             Statement stmtDel = connection.createStatement();

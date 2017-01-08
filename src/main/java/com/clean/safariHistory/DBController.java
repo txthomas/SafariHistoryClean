@@ -10,19 +10,11 @@ public class DBController {
     private String dbPath;
     private boolean driverLoaded = false;
 
-    public DBController(String dbPath){
+    public DBController(String dbPath) throws ClassNotFoundException {
         this.dbPath = dbPath;
 
-        try {
-
-            Class.forName("org.sqlite.JDBC");
-            driverLoaded = true;
-
-        } catch (ClassNotFoundException e) {
-
-            System.err.println("Failed to load JDBC driver");
-            e.printStackTrace();
-        }
+        Class.forName("org.sqlite.JDBC");
+        driverLoaded = true;
     }
 
     public Connection getDBConnection() {
