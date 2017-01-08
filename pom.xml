@@ -7,7 +7,7 @@
 
     <groupId>com.clean.safariHistory</groupId>
     <artifactId>SafariHistoryClean</artifactId>
-    <version>0.5.0</version>
+    <version>0.6.0</version>
     <packaging>jar</packaging>
 
     <name>Safari History Clean</name>
@@ -23,6 +23,11 @@
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.15.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.plist</groupId>
+            <artifactId>dd-plist</artifactId>
+            <version>1.16</version>
         </dependency>
     </dependencies>
 

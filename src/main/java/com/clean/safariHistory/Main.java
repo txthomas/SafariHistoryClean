@@ -1,7 +1,12 @@
 package com.clean.safariHistory;
 
+import com.dd.plist.*;
+import org.xml.sax.SAXException;
+
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
 import java.sql.*;
+import java.text.ParseException;
 
 public class Main {
 
@@ -9,6 +14,7 @@ public class Main {
 
         String searchFileName = "searchExpressions.txt";
         String dbFileName = null;
+        String plistFileName = null;
 
         for(int i = 0; i < args.length; i++) {
 
@@ -19,6 +25,9 @@ public class Main {
                     break;
                 case "-s":
                     searchFileName = args[i+1];
+                    break;
+                case "-p":
+                    plistFileName = args[i+1];
                     break;
                 case "-h" :
                 case "--help":
@@ -32,13 +41,46 @@ public class Main {
             return;
         }
 
+        if(plistFileName == null || plistFileName.equals("")) {
+            System.out.println("File path to plist file required. Use -h to see help text.");
+            return;
+        }
+
+        File plistFile = new File(plistFileName);
+
+        NSDictionary rootDict;
+        try {
+
+            rootDict = (NSDictionary) PropertyListParser.parse(plistFile);
+        } catch (IOException e) {
+
+            System.out.println("Plist file read failed! (" + e.toString() + ")");
+            return;
+        } catch (PropertyListFormatException e) {
+
+            System.out.println("Unknown format of plist file! (" + e.toString() + ")");
+            return;
+        } catch (ParseException e) {
+
+            System.out.println("Parsing of plist file failed! (" + e.toString() + ")");
+            return;
+        } catch (ParserConfigurationException e) {
+
+            System.out.println("Plist file parser config error! (" + e.toString() + ")");
+            return;
+        } catch (SAXException e) {
+
+            System.out.println("SAX Exception! (" + e.toString() + ")");
+            return;
+        }
+
         DBController dbc = new DBController(dbFileName);
         dbc.initDBConnection();
 
-        File file = new File(searchFileName);
+        File searchFile = new File(searchFileName);
         FileReader fr = null;
         try {
-            fr = new FileReader(file);
+            fr = new FileReader(searchFile);
         } catch (FileNotFoundException e) {
             System.out.println("Search expressions file not found! (" + e.toString() + ")");
             return;
@@ -51,12 +93,19 @@ public class Main {
             while((expression = br.readLine()) != null){
 
                 if(!expression.equals("")) {
-                    deleteHistory(dbc.getDBConnection(), expression);
+                    cleanHistory(dbc.getDBConnection(), expression);
+                    rootDict = cleanTabs(rootDict, expression);
                 }
             }
         } catch (IOException e) {
             System.out.println("Search expressions file read failed! (" + e.toString() + ")");
             return;
+        }
+
+        try {
+            BinaryPropertyListWriter.write(plistFile, rootDict);
+        } catch (IOException e) {
+            System.out.println("Write new plist file failed! (" + e.toString() + ")");
         }
 
         try {
@@ -73,10 +122,11 @@ public class Main {
 
         System.out.println();
         System.out.println("-d:\tFile path to database file !required!");
+        System.out.println("-p:\tFile path to plist file !required!");
         System.out.println("-s:\tFile path to search expressions file (default 'searchExpressions.txt')");
     }
 
-    private static void deleteHistory(Connection connection, String expression) {
+    private static void cleanHistory(Connection connection, String expression) {
         try {
             Statement stmt = connection.createStatement();
             ResultSet rs = stmt.executeQuery("SELECT * FROM history_items;");
@@ -113,5 +163,55 @@ public class Main {
         } catch (SQLException e) {
             System.out.println("Couldn't handle DB-Query! (" + e.toString() + ")");
         }
+    }
+
+    private static NSDictionary cleanTabs(NSDictionary rootDict, String expression) {
+
+            boolean delete = false;
+            String url = "";
+
+
+        NSObject[] parameters = ((NSArray)rootDict.objectForKey("ClosedTabOrWindowPersistentStates")).getArray();
+        for(int i = 0, j = 0; i < parameters.length; i++) {
+
+            NSObject[] array;
+            NSObject param = parameters[i];
+            NSObject persistState = ((NSDictionary)param).objectForKey("PersistentState");
+
+            if(((NSDictionary)persistState).containsKey("TabStates")) {
+
+                persistState = ((NSDictionary) persistState).objectForKey("TabStates");
+                array = ((NSArray)persistState).getArray();
+
+            } else {
+
+                array = new NSObject[1];
+                array[0] = persistState;
+            }
+
+            for(NSObject arrayObject: array) {
+
+                arrayObject = ((NSDictionary) arrayObject).objectForKey("TabURL");
+
+                if (arrayObject == null) {
+                    delete = true;
+                    continue;
+                }
+
+                url = ((NSString) arrayObject).toString();
+
+                if(url.matches(expression)) {
+                    delete = true;
+                }
+            }
+
+            if(delete) {
+                System.out.println(url + " deleted from recent closed tabs! ("+i+")");
+                ((NSArray)rootDict.objectForKey("ClosedTabOrWindowPersistentStates")).remove(i-j);
+                j++;
+            }
+        }
+
+        return rootDict;
     }
 }
