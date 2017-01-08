@@ -13,8 +13,8 @@ public class Main {
     public static void main(String[] args) {
 
         String searchFileName = "searchExpressions.txt";
-        String dbFileName = null;
-        String plistFileName = null;
+        String dbFileName = System.getProperty("user.home") + "/Library/Safari/History.db";
+        String plistFileName = System.getProperty("user.home") + "/Library/Safari/RecentlyClosedTabs.plist";
 
         for(int i = 0; i < args.length; i++) {
 
@@ -36,12 +36,12 @@ public class Main {
             }
         }
 
-        if(dbFileName == null || dbFileName.equals("")) {
+        if(dbFileName.equals("")) {
             System.out.println("File path to database file required. Use -h to see help text.");
             return;
         }
 
-        if(plistFileName == null || plistFileName.equals("")) {
+        if(plistFileName.equals("")) {
             System.out.println("File path to plist file required. Use -h to see help text.");
             return;
         }
@@ -114,6 +114,15 @@ public class Main {
             System.out.println("DB connection could not be closed! (" + e.toString() + ")");
         }
 
+        try {
+            Statement stmt = dbc.getDBConnection().createStatement();
+
+            // search for history_visits which no history_item exists for
+            ResultSet rs = stmt.executeQuery("DELETE FROM history_visits WHERE history_item NOT IN (SELECT id FROM history_items);");
+
+        } catch (SQLException e) {
+        }
+
         System.out.println("\nAll cleaned successfully!");
     }
 
@@ -121,8 +130,8 @@ public class Main {
     private static void printHelp() {
 
         System.out.println();
-        System.out.println("-d:\tFile path to database file !required!");
-        System.out.println("-p:\tFile path to plist file !required!");
+        System.out.println("-d:\tFile path to database file (default: /Users/.../Library/Safari/History.db)");
+        System.out.println("-p:\tFile path to plist file (default: /Users/.../Library/Safari/RecentlyClosedTabs.plist");
         System.out.println("-s:\tFile path to search expressions file (default 'searchExpressions.txt')");
     }
 

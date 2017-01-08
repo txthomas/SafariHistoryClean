@@ -16,7 +16,7 @@ $ java -jar SafariHistoryClean-0.5.0-jar-with-dependencies.jar
         -p "/Users/.../Library/Safari/RecentlyClosedTabs.plist"
         -s searchExpressions.txt
 ```
-The parameter for database and plist are required, if no `-s` parameter is applied the program uses the `searchExpressions.txt` in same folder as the executable.
+All parameters are optional. If nothing is applied the default values are as listed above.
 
 Search file:
 
