@@ -49,7 +49,7 @@ public class Main {
                 case "-h" :
                 case "--help":
                     printHelp();
-                    break;
+                    return;
             }
         }
 
@@ -162,12 +162,14 @@ public class Main {
         }
 
         if(verboseMode) {
-            System.out.println("Use following SQL statements to clean your database manually:\n");
+
+            System.out.println("\nUse following SQL statements to clean your database manually:\n");
             System.out.println("DELETE FROM history_visits WHERE history_item IN (" + idList.toString().replace("[", "").replace("]", "") + ")");
             System.out.println("DELETE FROM history_items WHERE id IN (" + idList.toString().replace("[", "").replace("]", "") + ")");
-        }
+        } else {
 
-        System.out.println("\nAll cleaned successfully!");
+            System.out.println("\nAll cleaned successfully!");
+        }
     }
 
     // print help output
@@ -177,6 +179,7 @@ public class Main {
         System.out.println("-d:\tFile path to database file (default: /Users/.../Library/Safari/History.db)");
         System.out.println("-p:\tFile path to plist file (default: /Users/.../Library/Safari/RecentlyClosedTabs.plist");
         System.out.println("-s:\tFile path to search expressions file (default 'searchExpressions.txt')");
+        System.out.println("-v:\tPerform verbose db scan and show sql clean query (manuall clean required)");
     }
 
     private static void cleanHistory(Connection connection, String expression) {
