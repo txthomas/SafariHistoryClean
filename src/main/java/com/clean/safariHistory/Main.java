@@ -11,8 +11,13 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.*;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Main {
+
+    static List<String> idList = new ArrayList<String>();
+    static boolean verboseMode = false;
 
     public static void main(String[] args) {
 
@@ -37,6 +42,9 @@ public class Main {
                     break;
                 case "-p":
                     plistFileName = args[i+1];
+                    break;
+                case "-v":
+                    verboseMode = true;
                     break;
                 case "-h" :
                 case "--help":
@@ -153,6 +161,12 @@ public class Main {
             System.out.println("DB connection could not be closed! (" + e.toString() + ")");
         }
 
+        if(verboseMode) {
+            System.out.println("Use following SQL statements to clean your database manually:\n");
+            System.out.println("DELETE FROM history_visits WHERE history_item IN (" + idList.toString().replace("[", "").replace("]", "") + ")");
+            System.out.println("DELETE FROM history_items WHERE id IN (" + idList.toString().replace("[", "").replace("]", "") + ")");
+        }
+
         System.out.println("\nAll cleaned successfully!");
     }
 
@@ -176,15 +190,23 @@ public class Main {
                 if(rs.getString("url").matches(expression)) {
                     System.out.printf("ID = %4d", Integer.parseInt(rs.getString("id")));
                     System.out.print("  URL = " + rs.getString("url"));
-                    System.out.println("...   deleted from history!");
 
-                    stmtDel.executeUpdate("DELETE FROM history_visits WHERE history_item = " + rs.getString("id") + ";");
-                    try {
-                        Thread.sleep(50);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    if(verboseMode) {
+
+                        System.out.println();
+                        idList.add(rs.getString("id"));
+                    } else {
+
+                        System.out.println("...   deleted from history!");
+
+                        stmtDel.executeUpdate("DELETE FROM history_visits WHERE history_item = " + rs.getString("id") + ";");
+                        try {
+                            Thread.sleep(50);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        stmtDel.executeUpdate("DELETE FROM history_items WHERE id = " + rs.getString("id") + ";");
                     }
-                    stmtDel.executeUpdate("DELETE FROM history_items WHERE id = " + rs.getString("id") + ";");
                 }
             }
 
