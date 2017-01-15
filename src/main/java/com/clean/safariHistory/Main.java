@@ -68,11 +68,11 @@ public class Main {
         System.out.println("PList:    " + plistFileName);
         System.out.println("Search:   " + searchFileName);
 
-        try {
-            Files.copy(Paths.get(dbFileName), Paths.get(dbFileName+"_bakup"), StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Files.copy(Paths.get(dbFileName), Paths.get(dbFileName+"_bakup"), StandardCopyOption.REPLACE_EXISTING);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
 
         // open search expressions file
         File searchFile = new File(searchFileName);
@@ -94,6 +94,17 @@ public class Main {
             return;
         }
         dbc.initDBConnection();
+
+        try {
+            Statement stmt = dbc.getDBConnection().createStatement();
+
+            // backup db
+            stmt.executeUpdate("backup to " + dbFileName.substring(0, dbFileName.lastIndexOf('.')) + "_bakup.db");
+            stmt.close();
+
+        } catch (SQLException e) {
+            System.out.println("Couldn't handle DB-Query! (" + e.toString() + ")");
+        }
 
         // open plist file for recent closed tabs and parse it
         File plistFile = new File(plistFileName);
@@ -164,8 +175,8 @@ public class Main {
         if(verboseMode) {
 
             System.out.println("\nUse following SQL statements to clean your database manually:\n");
-            System.out.println("DELETE FROM history_visits WHERE history_item IN (" + idList.toString().replace("[", "").replace("]", "") + ")");
-            System.out.println("DELETE FROM history_items WHERE id IN (" + idList.toString().replace("[", "").replace("]", "") + ")");
+            System.out.println("DELETE FROM history_visits WHERE history_item IN (" + idList.toString().replace("[", "").replace("]", "") + ");");
+            System.out.println("DELETE FROM history_items WHERE id IN (" + idList.toString().replace("[", "").replace("]", "") + ");");
         } else {
 
             System.out.println("\nAll cleaned successfully!");
@@ -204,7 +215,7 @@ public class Main {
 
                         stmtDel.executeUpdate("DELETE FROM history_visits WHERE history_item = " + rs.getString("id") + ";");
                         try {
-                            Thread.sleep(50);
+                            Thread.sleep(5);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

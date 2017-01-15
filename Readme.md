@@ -14,7 +14,7 @@ To execute:
 $ java -jar SafariHistoryClean-0.5.0-jar-with-dependencies.jar
         -d "/Users/.../Library/Safari/History.db"
         -p "/Users/.../Library/Safari/RecentlyClosedTabs.plist"
-        -s "{jarFilePath}/searchExpressions.txt"
+        -s "{executionPath}/searchExpressions.txt"
 ```
 All parameters are optional. If nothing is applied the default values are as listed above.
 
@@ -34,9 +34,9 @@ It is preferred to use the last pattern to match all entries with given domain a
 Go to eg. _https://regex101.com_ for evaluation of your regular expressions.
 
 ### Caution:
-In some situations the database can be damaged and Safari has problems to read the database and quit.
-For this reason a backup file (History.db_backup) is created. Just delete the database file, rename the backup and restart Safari or complete delete database file if it is not needed.
-Still investigating the issue and searching for a solution. It seems, that sqlite-jdbc corrupts the db in an unknown way...
+In some situations the database can be damaged and Safari isn't to read the database and quit.
+For this reason a backup file (History_backup.db) is created. Just delete the database file, rename the backup and restart Safari or complete delete database file if it is not needed.
+Still investigating the issue and searching for a solution...
 
 ### Disclaimer:
 Use this program at your own risk. I'm not responsible if something goes wrong.
@@ -44,5 +44,5 @@ Use this program at your own risk. I'm not responsible if something goes wrong.
 _(Code is quite a little bit messy... It will be fixed at ongoing progress.)_
 
 External libs:
-- sqlite-jdbc 3.15.1
+- sqlite-jdbc 3.16.1
 - dd-plist 1.16

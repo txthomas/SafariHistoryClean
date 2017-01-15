@@ -1,5 +1,8 @@
 package com.clean.safariHistory;
 
+import org.sqlite.SQLiteConfig;
+import org.sqlite.SQLiteOpenMode;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -33,8 +36,14 @@ public class DBController {
             if (connection != null || !driverLoaded)
                 return;
 
+            SQLiteConfig config = new SQLiteConfig();
+            // config.setReadOnly(true);
+            config.setOpenMode(SQLiteOpenMode.SHAREDCACHE);
+            config.setSharedCache(true);
+            config.setSynchronous(SQLiteConfig.SynchronousMode.FULL);
+
             System.out.println("Creating Connection to Database...");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath);
+            connection = DriverManager.getConnection("jdbc:sqlite:" + dbPath, config.toProperties());
 
             if (!connection.isClosed()) {
                 connection.setAutoCommit(false);
