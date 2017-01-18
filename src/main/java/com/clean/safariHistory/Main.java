@@ -99,7 +99,7 @@ public class Main {
             Statement stmt = dbc.getDBConnection().createStatement();
 
             // backup db
-            stmt.executeUpdate("backup to " + dbFileName.substring(0, dbFileName.lastIndexOf('.')) + "_bakup.db");
+            stmt.executeUpdate("backup to " + dbFileName.substring(0, dbFileName.lastIndexOf('.')) + "_backup.db");
             stmt.close();
 
         } catch (SQLException e) {
