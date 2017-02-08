@@ -236,13 +236,13 @@ public class Main {
 
     private static NSDictionary cleanTabs(NSDictionary rootDict, String expression) {
 
-        boolean delete = false;
         String url = "";
-
 
         NSObject[] persistentStates = ((NSArray)rootDict.objectForKey("ClosedTabOrWindowPersistentStates")).getArray();
 
         for(int i = 0, j = 0; i < persistentStates.length; i++) {
+
+            boolean delete = false;
 
             NSObject tabState;
             NSObject[] tabStateParameters;
@@ -276,7 +276,7 @@ public class Main {
             }
 
             if(delete) {
-                System.out.println(url + " deleted from recent closed tabs!");
+                System.out.println(url + " deleted from recent closed tabs!"+i+expression);
                 ((NSArray)rootDict.objectForKey("ClosedTabOrWindowPersistentStates")).remove(i-j);
                 j++;
             }
