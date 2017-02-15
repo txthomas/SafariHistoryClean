@@ -276,7 +276,7 @@ public class Main {
             }
 
             if(delete) {
-                System.out.println(url + " deleted from recent closed tabs!"+i+expression);
+                System.out.println(url + " deleted from recent closed tabs!");
                 ((NSArray)rootDict.objectForKey("ClosedTabOrWindowPersistentStates")).remove(i-j);
                 j++;
             }
