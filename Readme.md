@@ -37,6 +37,7 @@ Go to eg. _https://regex101.com_ for evaluation of your regular expressions.
 In some situations the database can be damaged and Safari isn't able to read the database and quits.
 For this reason a backup file (History_backup.db) is created. Just delete the database file, rename the backup and restart Safari or complete delete database file if it is not needed.
 Still investigating the issue and searching for a solution...
+
 ####Update:
 It seems, that since Safari 11 the database won't be unreadable anymore. Further observations required! Stay tuned...
 
