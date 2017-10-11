@@ -11,7 +11,7 @@ $ mvn package
 To execute:
 
 ```
-$ java -jar SafariHistoryClean-0.5.0-jar-with-dependencies.jar
+$ java -jar SafariHistoryClean-0.7.0-jar-with-dependencies.jar
         -d "/Users/.../Library/Safari/History.db"
         -p "/Users/.../Library/Safari/RecentlyClosedTabs.plist"
         -s "{executionPath}/searchExpressions.txt"
@@ -34,9 +34,11 @@ It is preferred to use the last pattern to match all entries with given domain a
 Go to eg. _https://regex101.com_ for evaluation of your regular expressions.
 
 ### Caution:
-In some situations the database can be damaged and Safari isn't to read the database and quit.
+In some situations the database can be damaged and Safari isn't able to read the database and quits.
 For this reason a backup file (History_backup.db) is created. Just delete the database file, rename the backup and restart Safari or complete delete database file if it is not needed.
 Still investigating the issue and searching for a solution...
+####Update:
+It seems, that since Safari 11 the database won't be unreadable anymore. Further observations required! Stay tuned...
 
 ### Disclaimer:
 Use this program at your own risk. I'm not responsible if something goes wrong.
