@@ -46,5 +46,5 @@ Use this program at your own risk. I'm not responsible if something goes wrong.
 _(Code is quite a little bit messy... It will be fixed at ongoing progress.)_
 
 External libs:
-- sqlite-jdbc 3.16.1
+- sqlite-jdbc 3.20.1
 - dd-plist 1.16
